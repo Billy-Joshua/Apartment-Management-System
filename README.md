@@ -4,7 +4,7 @@
 ## Quick Start Guide
 
 ### What is This?
-A complete **Apartment Management System** built with Java (Swing GUI), MySQL, and Socket Programming. Perfect for a university graded project demonstrating software engineering concepts.
+A complete **Apartment Management System** built with Java (Swing GUI), MySQL, and Socket Programming.
 
 ### Features
 ✅ Role-based user authentication (Admin, Manager, Tenant)  
@@ -23,11 +23,6 @@ A complete **Apartment Management System** built with Java (Swing GUI), MySQL, a
 - **Architecture:** Model-View-Controller (MVC)
 - **Networking:** Socket Programming
 
-### Quick Start (5 Minutes)
-
-1. **Install XAMPP** → https://www.apachefriends.org/
-2. **Create Database** → Run `database_schema.sql` in phpMyAdmin
-3. **Add MySQL JAR** → Copy mysql-connector-java-8.0.jar to `lib/` folder
 4. **Compile & Run:**
    ```bash
    cd "d:\Apartment Management System"
@@ -87,7 +82,7 @@ Manager:   manager1 / manager123
 Tenant:    tenant1 / tenant123
 ```
 
-### For Your Presentation
+### Presentation
 Use the **PROJECT_GUIDE.md Section 8** - it has a complete 2-3 minute script with slides!
 
 ---
