@@ -2,6 +2,7 @@ package com.ams.view;
 
 import com.ams.controller.RoomController;
 import com.ams.model.Room;
+import com.ams.utils.UITheme;
 import com.ams.utils.ValidationUtils;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -10,7 +11,7 @@ import java.awt.event.ActionEvent;
 import java.util.List;
 
 /**
- * RoomManagementUI - UI for managing rooms
+ * RoomManagementUI - Professional UI for managing rooms
  */
 public class RoomManagementUI {
     
@@ -28,50 +29,98 @@ public class RoomManagementUI {
     }
     
     private void initializePanel() {
-        mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        mainPanel = new JPanel(new BorderLayout(UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM));
+        UITheme.stylePanel(mainPanel, UITheme.BACKGROUND);
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(UITheme.PADDING_LARGE, UITheme.PADDING_LARGE, UITheme.PADDING_LARGE, UITheme.PADDING_LARGE));
         
         // Form Panel
-        JPanel formPanel = new JPanel(new GridLayout(2, 6, 10, 10));
-        formPanel.setBorder(BorderFactory.createTitledBorder("Add/Edit Room"));
+        JPanel formPanel = UITheme.createCardPanel();
+        formPanel.setLayout(new GridLayout(2, 6, UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM));
+        formPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder(BorderFactory.createLineBorder(UITheme.BORDER_COLOR, 1), "Add/Edit Room"),
+            BorderFactory.createEmptyBorder(UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM)
+        ));
         
-        formPanel.add(new JLabel("Room Number:"));
+        // Room Number
+        JLabel roomNumberLabel = new JLabel("Room Number:");
+        UITheme.styleLabel(roomNumberLabel, UITheme.FONT_BODY, UITheme.TEXT_PRIMARY);
+        formPanel.add(roomNumberLabel);
         roomNumberField = new JTextField();
+        UITheme.styleTextField(roomNumberField);
         formPanel.add(roomNumberField);
         
-        formPanel.add(new JLabel("Floor:"));
+        // Floor
+        JLabel floorLabel = new JLabel("Floor:");
+        UITheme.styleLabel(floorLabel, UITheme.FONT_BODY, UITheme.TEXT_PRIMARY);
+        formPanel.add(floorLabel);
         floorSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 20, 1));
         formPanel.add(floorSpinner);
         
-        formPanel.add(new JLabel("Room Type:"));
+        // Room Type
+        JLabel typeLabel = new JLabel("Room Type:");
+        UITheme.styleLabel(typeLabel, UITheme.FONT_BODY, UITheme.TEXT_PRIMARY);
+        formPanel.add(typeLabel);
         roomTypeField = new JTextField();
+        UITheme.styleTextField(roomTypeField);
         formPanel.add(roomTypeField);
         
-        formPanel.add(new JLabel("Status:"));
+        // Status
+        JLabel statusLabel = new JLabel("Status:");
+        UITheme.styleLabel(statusLabel, UITheme.FONT_BODY, UITheme.TEXT_PRIMARY);
+        formPanel.add(statusLabel);
         statusCombo = new JComboBox<>(new String[]{"VACANT", "OCCUPIED", "MAINTENANCE"});
+        statusCombo.setFont(UITheme.FONT_BODY);
         formPanel.add(statusCombo);
         
-        formPanel.add(new JLabel("Monthly Rent:"));
+        // Monthly Rent
+        JLabel rentLabel = new JLabel("Monthly Rent:");
+        UITheme.styleLabel(rentLabel, UITheme.FONT_BODY, UITheme.TEXT_PRIMARY);
+        formPanel.add(rentLabel);
         rentSpinner = new JSpinner(new SpinnerNumberModel(10000.0, 0.0, 1000000.0, 1000.0));
         formPanel.add(rentSpinner);
         
-        JButton saveButton = new JButton("Save Room");
+        // Save Button
+        JButton saveButton = new JButton("💾 Save Room");
+        UITheme.stylePrimaryButton(saveButton);
         saveButton.addActionListener(this::saveRoom);
         formPanel.add(saveButton);
         
         // Table Panel
         String[] columns = {"Room ID", "Room Number", "Floor", "Type", "Status", "Monthly Rent"};
-        tableModel = new DefaultTableModel(columns, 0);
+        tableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         roomsTable = new JTable(tableModel);
-        JScrollPane scrollPane = new JScrollPane(roomsTable);
-        scrollPane.setBorder(BorderFactory.createTitledBorder("Rooms List"));
+        roomsTable.setRowHeight(25);
+        roomsTable.setFont(UITheme.FONT_BODY);
+        roomsTable.getTableHeader().setFont(UITheme.FONT_SUBHEADING);
+        roomsTable.getTableHeader().setBackground(UITheme.PRIMARY_COLOR);
+        roomsTable.getTableHeader().setForeground(Color.WHITE);
+        roomsTable.setSelectionBackground(UITheme.SELECTED_COLOR);
+        roomsTable.setSelectionForeground(Color.WHITE);
         
+        JScrollPane scrollPane = new JScrollPane(roomsTable);
+        scrollPane.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder(BorderFactory.createLineBorder(UITheme.BORDER_COLOR, 1), "Rooms List"),
+            BorderFactory.createEmptyBorder(UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM)
+        ));
+        
+        // Bottom Panel
         JPanel bottomPanel = new JPanel();
-        JButton refreshButton = new JButton("Refresh");
+        UITheme.stylePanel(bottomPanel, UITheme.BACKGROUND);
+        bottomPanel.setLayout(new FlowLayout(FlowLayout.LEFT, UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM));
+        
+        JButton refreshButton = new JButton("🔄 Refresh");
+        UITheme.styleSecondaryButton(refreshButton);
         refreshButton.addActionListener(e -> refreshTable());
-        JButton deleteButton = new JButton("Delete Room");
-        deleteButton.addActionListener(this::deleteRoom);
         bottomPanel.add(refreshButton);
+        
+        JButton deleteButton = new JButton("🗑️ Delete");
+        UITheme.styleDangerButton(deleteButton);
+        deleteButton.addActionListener(this::deleteRoom);
         bottomPanel.add(deleteButton);
         
         mainPanel.add(formPanel, BorderLayout.NORTH);
@@ -96,7 +145,7 @@ public class RoomManagementUI {
         );
         
         if (roomController.addRoom(room)) {
-            JOptionPane.showMessageDialog(mainPanel, "Room added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(mainPanel, "✓ Room added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             clearForm();
             refreshTable();
         }
@@ -105,13 +154,18 @@ public class RoomManagementUI {
     private void deleteRoom(ActionEvent e) {
         int selectedRow = roomsTable.getSelectedRow();
         if (selectedRow < 0) {
-            JOptionPane.showMessageDialog(mainPanel, "Please select a room!", "Warning", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(mainPanel, "Please select a room to delete!", "Warning", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
         int roomId = (Integer) tableModel.getValueAt(selectedRow, 0);
-        if (roomController.deleteRoom(roomId)) {
-            refreshTable();
+        int confirm = JOptionPane.showConfirmDialog(mainPanel, "Are you sure you want to delete this room?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            if (roomController.deleteRoom(roomId)) {
+                JOptionPane.showMessageDialog(mainPanel, "✓ Room deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                refreshTable();
+            }
         }
     }
     

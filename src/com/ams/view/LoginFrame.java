@@ -3,6 +3,7 @@ package com.ams.view;
 import com.ams.controller.AuthController;
 import com.ams.model.User;
 import com.ams.utils.Constants;
+import com.ams.utils.UITheme;
 import com.ams.utils.ValidationUtils;
 
 import javax.swing.*;
@@ -11,7 +12,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 /**
- * LoginFrame - Main login UI for the application
+ * LoginFrame - Professional login UI for the application
  * Users enter credentials and are authenticated based on their role
  */
 public class LoginFrame extends JFrame {
@@ -30,122 +31,161 @@ public class LoginFrame extends JFrame {
     }
     
     /**
-     * Initialize the login UI components
+     * Initialize the login UI components with professional styling
      */
     private void initializeUI() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(500, 400);
+        setSize(600, 500);
         setLocationRelativeTo(null);
         setResizable(false);
         
         // Main Panel
         JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new BorderLayout());
-        mainPanel.setBackground(new Color(240, 240, 240));
+        mainPanel.setLayout(new BorderLayout(0, 0));
+        UITheme.stylePanel(mainPanel, UITheme.BACKGROUND);
         
-        // Header
-        JPanel headerPanel = new JPanel();
-        headerPanel.setBackground(new Color(41, 128, 185));
-        headerPanel.setPreferredSize(new Dimension(0, 80));
-        JLabel titleLabel = new JLabel(Constants.APP_TITLE);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        titleLabel.setForeground(Color.WHITE);
-        headerPanel.add(titleLabel);
+        // Header Panel
+        JPanel headerPanel = UITheme.createHeaderPanel(Constants.APP_TITLE);
         mainPanel.add(headerPanel, BorderLayout.NORTH);
         
-        // Form Panel
-        JPanel formPanel = new JPanel();
-        formPanel.setLayout(new GridBagLayout());
-        formPanel.setBackground(new Color(240, 240, 240));
+        // Center Panel with centered login card
+        JPanel centerPanel = new JPanel();
+        UITheme.stylePanel(centerPanel, UITheme.BACKGROUND);
+        centerPanel.setLayout(new GridBagLayout());
+        
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.insets = new Insets(0, 0, 0, 0);
         
-        // Username Label and Field
+        // Login Card Panel
+        JPanel loginCard = UITheme.createCardPanel();
+        loginCard.setLayout(new GridBagLayout());
+        loginCard.setPreferredSize(new Dimension(400, 350));
+        
+        GridBagConstraints cardGbc = new GridBagConstraints();
+        cardGbc.insets = new Insets(UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM);
+        cardGbc.fill = GridBagConstraints.HORIZONTAL;
+        cardGbc.anchor = GridBagConstraints.CENTER;
+        
+        // Welcome Label
+        JLabel welcomeLabel = new JLabel("Welcome Back");
+        UITheme.styleLabel(welcomeLabel, UITheme.FONT_HEADING, UITheme.TEXT_PRIMARY);
+        cardGbc.gridx = 0;
+        cardGbc.gridy = 0;
+        cardGbc.gridwidth = 2;
+        cardGbc.insets = new Insets(0, UITheme.PADDING_MEDIUM, UITheme.PADDING_LARGE, UITheme.PADDING_MEDIUM);
+        loginCard.add(welcomeLabel, cardGbc);
+        
+        // Username Label
         JLabel usernameLabel = new JLabel("Username:");
-        usernameLabel.setFont(new Font("Arial", Font.PLAIN, 13));
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.WEST;
-        formPanel.add(usernameLabel, gbc);
+        UITheme.styleLabel(usernameLabel, UITheme.FONT_BODY, UITheme.TEXT_PRIMARY);
+        cardGbc.gridx = 0;
+        cardGbc.gridy = 1;
+        cardGbc.gridwidth = 2;
+        cardGbc.insets = new Insets(UITheme.PADDING_SMALL, UITheme.PADDING_MEDIUM, UITheme.PADDING_SMALL, UITheme.PADDING_MEDIUM);
+        loginCard.add(usernameLabel, cardGbc);
         
-        usernameField = new JTextField(20);
-        usernameField.setFont(new Font("Arial", Font.PLAIN, 13));
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        formPanel.add(usernameField, gbc);
+        // Username Field
+        usernameField = new JTextField();
+        UITheme.styleTextField(usernameField);
+        cardGbc.gridx = 0;
+        cardGbc.gridy = 2;
+        cardGbc.gridwidth = 2;
+        cardGbc.insets = new Insets(UITheme.PADDING_SMALL, UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM);
+        loginCard.add(usernameField, cardGbc);
         
-        // Password Label and Field
+        // Password Label
         JLabel passwordLabel = new JLabel("Password:");
-        passwordLabel.setFont(new Font("Arial", Font.PLAIN, 13));
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.anchor = GridBagConstraints.WEST;
-        formPanel.add(passwordLabel, gbc);
+        UITheme.styleLabel(passwordLabel, UITheme.FONT_BODY, UITheme.TEXT_PRIMARY);
+        cardGbc.gridx = 0;
+        cardGbc.gridy = 3;
+        cardGbc.gridwidth = 2;
+        cardGbc.insets = new Insets(UITheme.PADDING_SMALL, UITheme.PADDING_MEDIUM, UITheme.PADDING_SMALL, UITheme.PADDING_MEDIUM);
+        loginCard.add(passwordLabel, cardGbc);
         
-        passwordField = new JPasswordField(20);
-        passwordField.setFont(new Font("Arial", Font.PLAIN, 13));
-        gbc.gridx = 1;
-        gbc.gridy = 1;
-        formPanel.add(passwordField, gbc);
+        // Password Field
+        passwordField = new JPasswordField();
+        UITheme.styleTextField(passwordField);
+        cardGbc.gridx = 0;
+        cardGbc.gridy = 4;
+        cardGbc.gridwidth = 2;
+        cardGbc.insets = new Insets(UITheme.PADDING_SMALL, UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM);
+        loginCard.add(passwordField, cardGbc);
         
         // Message Label
         messageLabel = new JLabel("");
-        messageLabel.setFont(new Font("Arial", Font.PLAIN, 11));
-        messageLabel.setForeground(Color.RED);
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2;
-        formPanel.add(messageLabel, gbc);
-        gbc.gridwidth = 1;
+        messageLabel.setFont(UITheme.FONT_SMALL);
+        messageLabel.setForeground(UITheme.DANGER_COLOR);
+        cardGbc.gridx = 0;
+        cardGbc.gridy = 5;
+        cardGbc.gridwidth = 2;
+        cardGbc.insets = new Insets(UITheme.PADDING_SMALL, UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM);
+        loginCard.add(messageLabel, cardGbc);
         
         // Buttons Panel
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setBackground(new Color(240, 240, 240));
+        UITheme.stylePanel(buttonPanel, UITheme.SURFACE);
+        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, UITheme.PADDING_MEDIUM, 0));
         
         loginButton = new JButton("Login");
-        loginButton.setFont(new Font("Arial", Font.BOLD, 13));
-        loginButton.setBackground(new Color(41, 128, 185));
-        loginButton.setForeground(Color.WHITE);
-        loginButton.setPreferredSize(new Dimension(100, 40));
+        UITheme.stylePrimaryButton(loginButton);
         loginButton.addActionListener(new LoginActionListener());
+        buttonPanel.add(loginButton);
         
         clearButton = new JButton("Clear");
-        clearButton.setFont(new Font("Arial", Font.BOLD, 13));
-        clearButton.setBackground(new Color(149, 165, 166));
-        clearButton.setForeground(Color.WHITE);
-        clearButton.setPreferredSize(new Dimension(100, 40));
+        UITheme.styleSecondaryButton(clearButton);
         clearButton.addActionListener(e -> {
             usernameField.setText("");
             passwordField.setText("");
             messageLabel.setText("");
         });
-        
-        buttonPanel.add(loginButton);
-        buttonPanel.add(Box.createHorizontalStrut(10));
         buttonPanel.add(clearButton);
         
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 2;
-        formPanel.add(buttonPanel, gbc);
+        cardGbc.gridx = 0;
+        cardGbc.gridy = 6;
+        cardGbc.gridwidth = 2;
+        cardGbc.insets = new Insets(UITheme.PADDING_LARGE, UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM);
+        loginCard.add(buttonPanel, cardGbc);
         
         // Demo Credentials Info
         JPanel infoPanel = new JPanel();
-        infoPanel.setBackground(new Color(240, 240, 240));
+        UITheme.stylePanel(infoPanel, new Color(255, 250, 240));
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
-        JLabel demoLabel = new JLabel("Demo Credentials:");
-        demoLabel.setFont(new Font("Arial", Font.BOLD, 11));
+        infoPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(UITheme.WARNING_COLOR, 1),
+            BorderFactory.createEmptyBorder(UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM)
+        ));
+        
+        JLabel demoLabel = new JLabel("🔑 Demo Credentials:");
+        demoLabel.setFont(UITheme.FONT_SUBHEADING);
+        demoLabel.setForeground(UITheme.WARNING_COLOR);
         infoPanel.add(demoLabel);
-        infoPanel.add(new JLabel("Admin: admin / admin123"));
-        infoPanel.add(new JLabel("Manager: manager1 / manager123"));
-        infoPanel.add(new JLabel("Tenant: tenant1 / tenant123"));
         
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        gbc.gridwidth = 2;
-        formPanel.add(infoPanel, gbc);
+        infoPanel.add(Box.createVerticalStrut(5));
         
-        mainPanel.add(formPanel, BorderLayout.CENTER);
+        JLabel admin = new JLabel("Admin: admin / admin123");
+        admin.setFont(UITheme.FONT_BODY);
+        admin.setForeground(UITheme.TEXT_PRIMARY);
+        infoPanel.add(admin);
+        
+        JLabel manager = new JLabel("Manager: manager1 / manager123");
+        manager.setFont(UITheme.FONT_BODY);
+        manager.setForeground(UITheme.TEXT_PRIMARY);
+        infoPanel.add(manager);
+        
+        JLabel tenant = new JLabel("Tenant: tenant1 / tenant123");
+        tenant.setFont(UITheme.FONT_BODY);
+        tenant.setForeground(UITheme.TEXT_PRIMARY);
+        infoPanel.add(tenant);
+        
+        cardGbc.gridx = 0;
+        cardGbc.gridy = 7;
+        cardGbc.gridwidth = 2;
+        cardGbc.insets = new Insets(UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM, 0, UITheme.PADDING_MEDIUM);
+        loginCard.add(infoPanel, cardGbc);
+        
+        centerPanel.add(loginCard, gbc);
+        mainPanel.add(centerPanel, BorderLayout.CENTER);
+        
         add(mainPanel);
     }
     

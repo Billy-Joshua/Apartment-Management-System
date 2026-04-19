@@ -150,16 +150,59 @@ public class TenantController {
     }
     
     /**
-     * Delete tenant
+     * Delete tenant with proper cascade handling
      */
     public boolean deleteTenant(int tenantId) {
+        Connection conn = DatabaseConfig.getConnection();
         try {
-            String query = "DELETE FROM tenants WHERE tenant_id = ?";
-            PreparedStatement ps = conn.prepareStatement(query);
-            ps.setInt(1, tenantId);
+            conn.setAutoCommit(false);
             
-            return ps.executeUpdate() > 0;
+            // Step 1: Delete all payments related to this tenant's contracts
+            String deletePaymentsQuery = "DELETE FROM payments WHERE contract_id IN " +
+                    "(SELECT contract_id FROM contracts WHERE tenant_id = ?)";
+            PreparedStatement ps1 = conn.prepareStatement(deletePaymentsQuery);
+            ps1.setInt(1, tenantId);
+            ps1.executeUpdate();
+            
+            // Step 2: Delete all contracts for this tenant
+            String deleteContractsQuery = "DELETE FROM contracts WHERE tenant_id = ?";
+            PreparedStatement ps2 = conn.prepareStatement(deleteContractsQuery);
+            ps2.setInt(1, tenantId);
+            ps2.executeUpdate();
+            
+            // Step 3: Get the user_id before deleting the tenant
+            String getUserIdQuery = "SELECT user_id FROM tenants WHERE tenant_id = ?";
+            PreparedStatement ps3 = conn.prepareStatement(getUserIdQuery);
+            ps3.setInt(1, tenantId);
+            ResultSet rs = ps3.executeQuery();
+            int userId = -1;
+            if (rs.next()) {
+                userId = rs.getInt("user_id");
+            }
+            
+            // Step 4: Delete the tenant
+            String deleteTenantQuery = "DELETE FROM tenants WHERE tenant_id = ?";
+            PreparedStatement ps4 = conn.prepareStatement(deleteTenantQuery);
+            ps4.setInt(1, tenantId);
+            int result = ps4.executeUpdate();
+            
+            // Step 5: Delete the associated user (optional, based on business logic)
+            if (userId > 0) {
+                String deleteUserQuery = "DELETE FROM users WHERE user_id = ? AND role = 'TENANT'";
+                PreparedStatement ps5 = conn.prepareStatement(deleteUserQuery);
+                ps5.setInt(1, userId);
+                ps5.executeUpdate();
+            }
+            
+            conn.commit();
+            conn.setAutoCommit(true);
+            return result > 0;
         } catch (SQLException e) {
+            try {
+                conn.rollback();
+            } catch (SQLException rollbackEx) {
+                System.err.println("Rollback error: " + rollbackEx.getMessage());
+            }
             System.err.println("Error deleting tenant: " + e.getMessage());
             return false;
         }

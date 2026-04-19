@@ -3,14 +3,15 @@ package com.ams.view;
 import com.ams.controller.*;
 import com.ams.model.User;
 import com.ams.utils.Constants;
+import com.ams.utils.UITheme;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 
 /**
- * AdminDashboard - Main dashboard for Admin users
- * Provides access to all system functionalities
+ * AdminDashboard - Professional dashboard for Admin users
+ * Provides access to all system functionalities with modern UI
  */
 public class AdminDashboard extends JFrame {
     
@@ -34,107 +35,92 @@ public class AdminDashboard extends JFrame {
     }
     
     /**
-     * Initialize admin dashboard components
+     * Initialize admin dashboard components with professional styling
      */
     private void initializeUI() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(Constants.WINDOW_WIDTH, Constants.WINDOW_HEIGHT);
+        setSize(UITheme.WINDOW_WIDTH, UITheme.WINDOW_HEIGHT);
         setLocationRelativeTo(null);
         setResizable(true);
         
         // Main Panel
         JPanel mainPanel = new JPanel(new BorderLayout());
+        UITheme.stylePanel(mainPanel, UITheme.BACKGROUND);
         
-        // Header
+        // Header Panel
         JPanel headerPanel = new JPanel();
-        headerPanel.setBackground(new Color(41, 128, 185));
-        headerPanel.setPreferredSize(new Dimension(0, 50));
-        JLabel welcomeLabel = new JLabel("Welcome, Admin " + user.getUsername());
-        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        UITheme.stylePanel(headerPanel, UITheme.PRIMARY_COLOR);
+        headerPanel.setPreferredSize(new Dimension(0, 70));
+        headerPanel.setLayout(new BorderLayout());
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(0, UITheme.PADDING_LARGE, 0, UITheme.PADDING_LARGE));
+        
+        JLabel welcomeLabel = new JLabel("👨‍💼 Welcome, Admin: " + user.getUsername());
+        welcomeLabel.setFont(UITheme.FONT_HEADING);
         welcomeLabel.setForeground(Color.WHITE);
         
         JButton logoutButton = new JButton("Logout");
-        logoutButton.setBackground(new Color(231, 76, 60));
-        logoutButton.setForeground(Color.WHITE);
+        UITheme.styleDangerButton(logoutButton);
         logoutButton.addActionListener(e -> logout());
         
-        headerPanel.add(Box.createHorizontalStrut(20));
-        headerPanel.add(welcomeLabel);
-        headerPanel.add(Box.createHorizontalGlue());
-        headerPanel.add(logoutButton);
-        headerPanel.add(Box.createHorizontalStrut(20));
+        headerPanel.add(welcomeLabel, BorderLayout.WEST);
+        headerPanel.add(logoutButton, BorderLayout.EAST);
         
         mainPanel.add(headerPanel, BorderLayout.NORTH);
         
-        // Tabbed Pane
+        // Tabbed Pane with professional styling
         tabbedPane = new JTabbedPane();
-        tabbedPane.addTab("Dashboard", createDashboardPanel());
-        tabbedPane.addTab("Tenants", new TenantManagementUI().getPanel());
-        tabbedPane.addTab("Rooms", new RoomManagementUI().getPanel());
-        tabbedPane.addTab("Payments", new PaymentManagementUI().getPanel());
-        tabbedPane.addTab("Contracts", new ContractManagementUI().getPanel());
+        tabbedPane.setBackground(UITheme.BACKGROUND);
+        tabbedPane.setFont(UITheme.FONT_SUBHEADING);
+        
+        tabbedPane.addTab("📊 Dashboard", createDashboardPanel());
+        tabbedPane.addTab("👥 Tenants", new TenantManagementUI().getPanel());
+        tabbedPane.addTab("🏢 Rooms", new RoomManagementUI().getPanel());
+        tabbedPane.addTab("💳 Payments", new PaymentManagementUI().getPanel());
+        tabbedPane.addTab("📄 Contracts", new ContractManagementUI().getPanel());
         
         mainPanel.add(tabbedPane, BorderLayout.CENTER);
         add(mainPanel);
     }
     
     /**
-     * Create dashboard panel with statistics
+     * Create professional dashboard panel with statistics
      */
     private JPanel createDashboardPanel() {
         JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(2, 2, 10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        UITheme.stylePanel(panel, UITheme.BACKGROUND);
+        panel.setLayout(new BorderLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(UITheme.PADDING_LARGE, UITheme.PADDING_LARGE, UITheme.PADDING_LARGE, UITheme.PADDING_LARGE));
+        
+        // Statistics Panel
+        JPanel statsPanel = new JPanel();
+        UITheme.stylePanel(statsPanel, UITheme.BACKGROUND);
+        statsPanel.setLayout(new GridLayout(2, 2, UITheme.PADDING_LARGE, UITheme.PADDING_LARGE));
         
         // Total Tenants
-        JPanel tenantsPanel = createStatPanel("Total Tenants", 
+        statsPanel.add(UITheme.createStatCard("Total Tenants", 
             String.valueOf(tenantController.getAllTenants().size()), 
-            new Color(52, 152, 219));
+            UITheme.PRIMARY_LIGHT));
         
         // Total Rooms
-        JPanel roomsPanel = createStatPanel("Total Rooms", 
+        statsPanel.add(UITheme.createStatCard("Total Rooms", 
             String.valueOf(roomController.getAllRooms().size()), 
-            new Color(46, 204, 113));
+            UITheme.SUCCESS_COLOR));
         
         // Pending Payments
         long pendingCount = paymentController.getAllPayments().stream()
             .filter(p -> "PENDING".equals(p.getStatus())).count();
-        JPanel paymentsPanel = createStatPanel("Pending Payments", 
+        statsPanel.add(UITheme.createStatCard("Pending Payments", 
             String.valueOf(pendingCount), 
-            new Color(230, 126, 34));
+            UITheme.WARNING_COLOR));
         
-        // System Status
-        JPanel statusPanel = createStatPanel("System Status", "OPERATIONAL", 
-            new Color(155, 89, 182));
+        // Active Contracts
+        long activeContracts = contractController.getAllContracts().stream()
+            .filter(c -> "ACTIVE".equals(c.getStatus())).count();
+        statsPanel.add(UITheme.createStatCard("Active Contracts", 
+            String.valueOf(activeContracts), 
+            UITheme.INFO_COLOR));
         
-        panel.add(tenantsPanel);
-        panel.add(roomsPanel);
-        panel.add(paymentsPanel);
-        panel.add(statusPanel);
-        
-        return panel;
-    }
-    
-    /**
-     * Create a statistics panel
-     */
-    private JPanel createStatPanel(String title, String value, Color bgColor) {
-        JPanel panel = new JPanel();
-        panel.setBackground(bgColor);
-        panel.setLayout(new GridLayout(2, 1));
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        
-        JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        titleLabel.setForeground(Color.WHITE);
-        
-        JLabel valueLabel = new JLabel(value);
-        valueLabel.setFont(new Font("Arial", Font.BOLD, 32));
-        valueLabel.setForeground(Color.WHITE);
-        
-        panel.add(titleLabel);
-        panel.add(valueLabel);
-        
+        panel.add(statsPanel, BorderLayout.CENTER);
         return panel;
     }
     

@@ -2,11 +2,12 @@ package com.ams.view;
 
 import com.ams.model.User;
 import com.ams.utils.Constants;
+import com.ams.utils.UITheme;
 import javax.swing.*;
 import java.awt.*;
 
 /**
- * ManagerDashboard - Dashboard for Manager users
+ * ManagerDashboard - Professional dashboard for Manager users
  * Managers can see limited tenants and rooms
  */
 public class ManagerDashboard extends JFrame {
@@ -22,37 +23,40 @@ public class ManagerDashboard extends JFrame {
     
     private void initializeUI() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(Constants.WINDOW_WIDTH, Constants.WINDOW_HEIGHT);
+        setSize(UITheme.WINDOW_WIDTH, UITheme.WINDOW_HEIGHT);
         setLocationRelativeTo(null);
         
         JPanel mainPanel = new JPanel(new BorderLayout());
+        UITheme.stylePanel(mainPanel, UITheme.BACKGROUND);
         
-        // Header
+        // Header Panel
         JPanel headerPanel = new JPanel();
-        headerPanel.setBackground(new Color(52, 73, 94));
-        headerPanel.setPreferredSize(new Dimension(0, 50));
-        JLabel welcomeLabel = new JLabel("Manager - " + user.getUsername());
-        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        UITheme.stylePanel(headerPanel, UITheme.PRIMARY_DARK);
+        headerPanel.setPreferredSize(new Dimension(0, 70));
+        headerPanel.setLayout(new BorderLayout());
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(0, UITheme.PADDING_LARGE, 0, UITheme.PADDING_LARGE));
+        
+        JLabel welcomeLabel = new JLabel("👔 Manager: " + user.getUsername());
+        welcomeLabel.setFont(UITheme.FONT_HEADING);
         welcomeLabel.setForeground(Color.WHITE);
         
         JButton logoutButton = new JButton("Logout");
-        logoutButton.setBackground(new Color(231, 76, 60));
-        logoutButton.setForeground(Color.WHITE);
+        UITheme.styleDangerButton(logoutButton);
         logoutButton.addActionListener(e -> logout());
         
-        headerPanel.add(Box.createHorizontalStrut(20));
-        headerPanel.add(welcomeLabel);
-        headerPanel.add(Box.createHorizontalGlue());
-        headerPanel.add(logoutButton);
-        headerPanel.add(Box.createHorizontalStrut(20));
+        headerPanel.add(welcomeLabel, BorderLayout.WEST);
+        headerPanel.add(logoutButton, BorderLayout.EAST);
         
         mainPanel.add(headerPanel, BorderLayout.NORTH);
         
         // Tabs
         tabbedPane = new JTabbedPane();
-        tabbedPane.addTab("Tenants", new TenantManagementUI().getPanel());
-        tabbedPane.addTab("Available Rooms", new RoomManagementUI().getVacantRoomsPanel());
-        tabbedPane.addTab("Payments", new PaymentManagementUI().getPanel());
+        tabbedPane.setBackground(UITheme.BACKGROUND);
+        tabbedPane.setFont(UITheme.FONT_SUBHEADING);
+        
+        tabbedPane.addTab("👥 Tenants", new TenantManagementUI().getPanel());
+        tabbedPane.addTab("🏢 Available Rooms", new RoomManagementUI().getVacantRoomsPanel());
+        tabbedPane.addTab("💳 Payments", new PaymentManagementUI().getPanel());
         
         mainPanel.add(tabbedPane, BorderLayout.CENTER);
         add(mainPanel);

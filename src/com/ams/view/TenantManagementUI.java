@@ -2,6 +2,7 @@ package com.ams.view;
 
 import com.ams.controller.TenantController;
 import com.ams.model.Tenant;
+import com.ams.utils.UITheme;
 import com.ams.utils.ValidationUtils;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -10,7 +11,7 @@ import java.awt.event.ActionEvent;
 import java.util.List;
 
 /**
- * TenantManagementUI - UI for managing tenants (Create, Read, Update, Delete)
+ * TenantManagementUI - Professional UI for managing tenants (Create, Read, Update, Delete)
  */
 public class TenantManagementUI {
     
@@ -18,7 +19,7 @@ public class TenantManagementUI {
     private JPanel mainPanel;
     private JTable tenantsTable;
     private DefaultTableModel tableModel;
-    private JTextField firstNameField, lastNameField, emailField, phoneField;
+    private JTextField firstNameField, lastNameField, emailField, phoneField, emergencyContactField, emergencyPhoneField;
     private JSpinner roomIdSpinner;
     
     public TenantManagementUI() {
@@ -27,59 +28,108 @@ public class TenantManagementUI {
     }
     
     /**
-     * Initialize the tenant management panel
+     * Initialize the tenant management panel with professional styling
      */
     private void initializePanel() {
-        mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        mainPanel = new JPanel(new BorderLayout(UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM));
+        UITheme.stylePanel(mainPanel, UITheme.BACKGROUND);
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(UITheme.PADDING_LARGE, UITheme.PADDING_LARGE, UITheme.PADDING_LARGE, UITheme.PADDING_LARGE));
         
         // Form Panel
-        JPanel formPanel = new JPanel(new GridLayout(2, 4, 10, 10));
-        formPanel.setBorder(BorderFactory.createTitledBorder("Add/Edit Tenant"));
+        JPanel formPanel = UITheme.createCardPanel();
+        formPanel.setLayout(new GridLayout(3, 4, UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM));
+        formPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder(BorderFactory.createLineBorder(UITheme.BORDER_COLOR, 1), "Add/Edit Tenant"),
+            BorderFactory.createEmptyBorder(UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM)
+        ));
         
-        formPanel.add(new JLabel("First Name:"));
-        firstNameField = new JTextField();
-        formPanel.add(firstNameField);
+        // First Name
+        formPanel.add(createLabeledComponent("First Name:", (firstNameField = new JTextField())));
+        UITheme.styleTextField(firstNameField);
         
-        formPanel.add(new JLabel("Last Name:"));
-        lastNameField = new JTextField();
-        formPanel.add(lastNameField);
+        // Last Name
+        formPanel.add(createLabeledComponent("Last Name:", (lastNameField = new JTextField())));
+        UITheme.styleTextField(lastNameField);
         
-        formPanel.add(new JLabel("Email:"));
-        emailField = new JTextField();
-        formPanel.add(emailField);
+        // Email
+        formPanel.add(createLabeledComponent("Email:", (emailField = new JTextField())));
+        UITheme.styleTextField(emailField);
         
-        formPanel.add(new JLabel("Phone:"));
-        phoneField = new JTextField();
-        formPanel.add(phoneField);
+        // Phone
+        formPanel.add(createLabeledComponent("Phone:", (phoneField = new JTextField())));
+        UITheme.styleTextField(phoneField);
         
-        formPanel.add(new JLabel("Room ID:"));
+        // Emergency Contact
+        formPanel.add(createLabeledComponent("Emergency Contact:", (emergencyContactField = new JTextField())));
+        UITheme.styleTextField(emergencyContactField);
+        
+        // Emergency Phone
+        formPanel.add(createLabeledComponent("Emergency Phone:", (emergencyPhoneField = new JTextField())));
+        UITheme.styleTextField(emergencyPhoneField);
+        
+        // Room ID
         roomIdSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 100, 1));
-        formPanel.add(roomIdSpinner);
+        formPanel.add(createLabeledComponent("Room ID:", roomIdSpinner));
         
-        JButton saveButton = new JButton("Save Tenant");
+        // Buttons Panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, UITheme.PADDING_MEDIUM, 0));
+        UITheme.stylePanel(buttonPanel, UITheme.SURFACE);
+        
+        JButton saveButton = new JButton("💾 Save Tenant");
+        UITheme.stylePrimaryButton(saveButton);
         saveButton.addActionListener(this::saveTenant);
-        formPanel.add(saveButton);
+        buttonPanel.add(saveButton);
         
-        JButton deleteButton = new JButton("Delete Tenant");
+        JButton deleteButton = new JButton("🗑️ Delete");
+        UITheme.styleDangerButton(deleteButton);
         deleteButton.addActionListener(this::deleteTenant);
-        formPanel.add(deleteButton);
+        buttonPanel.add(deleteButton);
         
-        JButton refreshButton = new JButton("Refresh");
+        JButton refreshButton = new JButton("🔄 Refresh");
+        UITheme.styleSecondaryButton(refreshButton);
         refreshButton.addActionListener(e -> refreshTable());
-        formPanel.add(refreshButton);
+        buttonPanel.add(refreshButton);
+        
+        formPanel.add(buttonPanel);
         
         // Table Panel
-        String[] columns = {"ID", "Name", "Email", "Phone", "Room ID", "Move In Date"};
-        tableModel = new DefaultTableModel(columns, 0);
+        String[] columns = {"ID", "Name", "Email", "Phone", "Room ID", "Move In Date", "Emergency Contact"};
+        tableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        
         tenantsTable = new JTable(tableModel);
+        tenantsTable.setRowHeight(25);
+        tenantsTable.setFont(UITheme.FONT_BODY);
+        tenantsTable.getTableHeader().setFont(UITheme.FONT_SUBHEADING);
+        tenantsTable.getTableHeader().setBackground(UITheme.PRIMARY_COLOR);
+        tenantsTable.getTableHeader().setForeground(Color.WHITE);
+        tenantsTable.setSelectionBackground(UITheme.SELECTED_COLOR);
+        tenantsTable.setSelectionForeground(Color.WHITE);
+        
         JScrollPane scrollPane = new JScrollPane(tenantsTable);
-        scrollPane.setBorder(BorderFactory.createTitledBorder("Tenants List"));
+        scrollPane.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder(BorderFactory.createLineBorder(UITheme.BORDER_COLOR, 1), "Tenants List"),
+            BorderFactory.createEmptyBorder(UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM, UITheme.PADDING_MEDIUM)
+        ));
         
         mainPanel.add(formPanel, BorderLayout.NORTH);
         mainPanel.add(scrollPane, BorderLayout.CENTER);
         
         refreshTable();
+    }
+    
+    private JPanel createLabeledComponent(String label, JComponent component) {
+        JPanel panel = new JPanel(new BorderLayout(5, 0));
+        UITheme.stylePanel(panel, UITheme.SURFACE);
+        JLabel lbl = new JLabel(label);
+        UITheme.styleLabel(lbl, UITheme.FONT_BODY, UITheme.TEXT_PRIMARY);
+        panel.add(lbl, BorderLayout.WEST);
+        panel.add(component, BorderLayout.CENTER);
+        return panel;
     }
     
     /**
@@ -102,12 +152,15 @@ public class TenantManagementUI {
             null
         );
         
+        tenant.setEmergencyContact(emergencyContactField.getText());
+        tenant.setEmergencyPhone(emergencyPhoneField.getText());
+        
         if (tenantController.addTenant(tenant)) {
-            JOptionPane.showMessageDialog(mainPanel, "Tenant added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(mainPanel, "✓ Tenant added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             clearForm();
             refreshTable();
         } else {
-            JOptionPane.showMessageDialog(mainPanel, "Error adding tenant!", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(mainPanel, "✗ Error adding tenant!", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
     
@@ -122,12 +175,14 @@ public class TenantManagementUI {
         }
         
         int tenantId = (Integer) tableModel.getValueAt(selectedRow, 0);
-        int confirm = JOptionPane.showConfirmDialog(mainPanel, "Are you sure?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(mainPanel, "Are you sure you want to delete this tenant?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
         
         if (confirm == JOptionPane.YES_OPTION) {
             if (tenantController.deleteTenant(tenantId)) {
-                JOptionPane.showMessageDialog(mainPanel, "Tenant deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(mainPanel, "✓ Tenant deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 refreshTable();
+            } else {
+                JOptionPane.showMessageDialog(mainPanel, "✗ Error deleting tenant!", "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -146,7 +201,8 @@ public class TenantManagementUI {
                 t.getEmail(),
                 t.getPhone(),
                 t.getRoomId(),
-                t.getMoveInDate() != null ? t.getMoveInDate() : "N/A"
+                t.getMoveInDate() != null ? t.getMoveInDate() : "N/A",
+                t.getEmergencyContact() != null ? t.getEmergencyContact() : "N/A"
             });
         }
     }
@@ -159,6 +215,8 @@ public class TenantManagementUI {
         lastNameField.setText("");
         emailField.setText("");
         phoneField.setText("");
+        emergencyContactField.setText("");
+        emergencyPhoneField.setText("");
         roomIdSpinner.setValue(1);
     }
     
