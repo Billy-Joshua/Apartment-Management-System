@@ -98,7 +98,7 @@ Use the **PROJECT_GUIDE.md Section 8** - it has a complete 2-3 minute script wit
 
 **Questions?** Check the documentation files for detailed explanations.
 
-**Ready to go!** Don't forget to show your friends how cool this system is! 😎
+
 
 ---
 
