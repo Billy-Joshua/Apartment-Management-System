@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # README - Apartment Management System
 
 ## Quick Start Guide
@@ -108,3 +109,6 @@ Use the **PROJECT_GUIDE.md Section 8** - it has a complete 2-3 minute script wit
 
 *Version: 1.0.0*  
 *Last Updated: April 2024*
+=======
+# Apartment-Management-System
+>>>>>>> f2ef482e05750a4d8445fdd6ce9cbd8f9b744d21
