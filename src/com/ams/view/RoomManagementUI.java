@@ -22,6 +22,7 @@ public class RoomManagementUI {
     private JTextField roomNumberField, roomTypeField;
     private JSpinner floorSpinner, rentSpinner;
     private JComboBox<String> statusCombo;
+    private Integer selectedRoomId = null;  // Track if editing
     
     public RoomManagementUI() {
         this.roomController = new RoomController();
@@ -102,6 +103,13 @@ public class RoomManagementUI {
         roomsTable.setSelectionBackground(UITheme.SELECTED_COLOR);
         roomsTable.setSelectionForeground(Color.WHITE);
         
+        // Add row selection listener to populate form
+        roomsTable.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && roomsTable.getSelectedRow() >= 0) {
+                loadRoomToForm(roomsTable.getSelectedRow());
+            }
+        });
+        
         JScrollPane scrollPane = new JScrollPane(roomsTable);
         scrollPane.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createTitledBorder(BorderFactory.createLineBorder(UITheme.BORDER_COLOR, 1), "Rooms List"),
@@ -118,10 +126,20 @@ public class RoomManagementUI {
         refreshButton.addActionListener(e -> refreshTable());
         bottomPanel.add(refreshButton);
         
+        JButton editButton = new JButton("✏️ Edit");
+        UITheme.stylePrimaryButton(editButton);
+        editButton.addActionListener(this::editRoom);
+        bottomPanel.add(editButton);
+        
         JButton deleteButton = new JButton("🗑️ Delete");
         UITheme.styleDangerButton(deleteButton);
         deleteButton.addActionListener(this::deleteRoom);
         bottomPanel.add(deleteButton);
+        
+        JButton clearButton = new JButton("🔄 Clear");
+        UITheme.styleSecondaryButton(clearButton);
+        clearButton.addActionListener(e -> clearForm());
+        bottomPanel.add(clearButton);
         
         mainPanel.add(formPanel, BorderLayout.NORTH);
         mainPanel.add(scrollPane, BorderLayout.CENTER);
@@ -144,10 +162,54 @@ public class RoomManagementUI {
             (Double) rentSpinner.getValue()
         );
         
-        if (roomController.addRoom(room)) {
-            JOptionPane.showMessageDialog(mainPanel, "✓ Room added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            clearForm();
-            refreshTable();
+        if (selectedRoomId != null) {
+            // Update existing room
+            room.setRoomId(selectedRoomId);
+            if (roomController.updateRoom(room)) {
+                JOptionPane.showMessageDialog(mainPanel, "✓ Room updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                clearForm();
+                refreshTable();
+            } else {
+                JOptionPane.showMessageDialog(mainPanel, "✗ Error updating room!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            // Add new room
+            if (roomController.addRoom(room)) {
+                JOptionPane.showMessageDialog(mainPanel, "✓ Room added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                clearForm();
+                refreshTable();
+            } else {
+                JOptionPane.showMessageDialog(mainPanel, "✗ Error adding room!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+    
+    /**
+     * Edit room (load selected row into form)
+     */
+    private void editRoom(ActionEvent e) {
+        int selectedRow = roomsTable.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(mainPanel, "Please select a room to edit!", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        loadRoomToForm(selectedRow);
+    }
+    
+    /**
+     * Load room data into form fields
+     */
+    private void loadRoomToForm(int row) {
+        selectedRoomId = (Integer) tableModel.getValueAt(row, 0);
+        Room room = roomController.getRoomById(selectedRoomId);
+        
+        if (room != null) {
+            roomNumberField.setText(room.getRoomNumber());
+            floorSpinner.setValue(room.getFloor());
+            roomTypeField.setText(room.getRoomType());
+            statusCombo.setSelectedItem(room.getStatus());
+            rentSpinner.setValue(room.getMonthlyRent());
         }
     }
     
@@ -191,6 +253,7 @@ public class RoomManagementUI {
         roomTypeField.setText("");
         statusCombo.setSelectedIndex(0);
         rentSpinner.setValue(10000.0);
+        selectedRoomId = null;  // Reset edit mode
     }
     
     public JPanel getPanel() {

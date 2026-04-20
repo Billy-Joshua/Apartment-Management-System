@@ -21,6 +21,7 @@ public class TenantManagementUI {
     private DefaultTableModel tableModel;
     private JTextField firstNameField, lastNameField, emailField, phoneField, emergencyContactField, emergencyPhoneField;
     private JSpinner roomIdSpinner;
+    private Integer selectedTenantId = null;  // Track if editing
     
     public TenantManagementUI() {
         this.tenantController = new TenantController();
@@ -80,10 +81,20 @@ public class TenantManagementUI {
         saveButton.addActionListener(this::saveTenant);
         buttonPanel.add(saveButton);
         
+        JButton editButton = new JButton("✏️ Edit");
+        UITheme.stylePrimaryButton(editButton);
+        editButton.addActionListener(this::editTenant);
+        buttonPanel.add(editButton);
+        
         JButton deleteButton = new JButton("🗑️ Delete");
         UITheme.styleDangerButton(deleteButton);
         deleteButton.addActionListener(this::deleteTenant);
         buttonPanel.add(deleteButton);
+        
+        JButton clearButton = new JButton("🔄 Clear");
+        UITheme.styleSecondaryButton(clearButton);
+        clearButton.addActionListener(e -> clearForm());
+        buttonPanel.add(clearButton);
         
         JButton refreshButton = new JButton("🔄 Refresh");
         UITheme.styleSecondaryButton(refreshButton);
@@ -109,6 +120,13 @@ public class TenantManagementUI {
         tenantsTable.getTableHeader().setForeground(Color.WHITE);
         tenantsTable.setSelectionBackground(UITheme.SELECTED_COLOR);
         tenantsTable.setSelectionForeground(Color.WHITE);
+        
+        // Add row selection listener to populate form
+        tenantsTable.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && tenantsTable.getSelectedRow() >= 0) {
+                loadTenantToForm(tenantsTable.getSelectedRow());
+            }
+        });
         
         JScrollPane scrollPane = new JScrollPane(tenantsTable);
         scrollPane.setBorder(BorderFactory.createCompoundBorder(
@@ -155,12 +173,56 @@ public class TenantManagementUI {
         tenant.setEmergencyContact(emergencyContactField.getText());
         tenant.setEmergencyPhone(emergencyPhoneField.getText());
         
-        if (tenantController.addTenant(tenant)) {
-            JOptionPane.showMessageDialog(mainPanel, "✓ Tenant added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            clearForm();
-            refreshTable();
+        if (selectedTenantId != null) {
+            // Update existing tenant
+            tenant.setTenantId(selectedTenantId);
+            if (tenantController.updateTenant(tenant)) {
+                JOptionPane.showMessageDialog(mainPanel, "✓ Tenant updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                clearForm();
+                refreshTable();
+            } else {
+                JOptionPane.showMessageDialog(mainPanel, "✗ Error updating tenant!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
         } else {
-            JOptionPane.showMessageDialog(mainPanel, "✗ Error adding tenant!", "Error", JOptionPane.ERROR_MESSAGE);
+            // Add new tenant
+            if (tenantController.addTenant(tenant)) {
+                JOptionPane.showMessageDialog(mainPanel, "✓ Tenant added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                clearForm();
+                refreshTable();
+            } else {
+                JOptionPane.showMessageDialog(mainPanel, "✗ Error adding tenant!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+    
+    /**
+     * Edit tenant (load selected row into form)
+     */
+    private void editTenant(ActionEvent e) {
+        int selectedRow = tenantsTable.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(mainPanel, "Please select a tenant to edit!", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        loadTenantToForm(selectedRow);
+    }
+    
+    /**
+     * Load tenant data into form fields
+     */
+    private void loadTenantToForm(int row) {
+        selectedTenantId = (Integer) tableModel.getValueAt(row, 0);
+        Tenant tenant = tenantController.getTenantById(selectedTenantId);
+        
+        if (tenant != null) {
+            firstNameField.setText(tenant.getFirstName());
+            lastNameField.setText(tenant.getLastName());
+            emailField.setText(tenant.getEmail());
+            phoneField.setText(tenant.getPhone());
+            roomIdSpinner.setValue(tenant.getRoomId());
+            emergencyContactField.setText(tenant.getEmergencyContact() != null ? tenant.getEmergencyContact() : "");
+            emergencyPhoneField.setText(tenant.getEmergencyPhone() != null ? tenant.getEmergencyPhone() : "");
         }
     }
     
@@ -218,6 +280,7 @@ public class TenantManagementUI {
         emergencyContactField.setText("");
         emergencyPhoneField.setText("");
         roomIdSpinner.setValue(1);
+        selectedTenantId = null;  // Reset edit mode
     }
     
     public JPanel getPanel() {
