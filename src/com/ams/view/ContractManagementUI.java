@@ -97,7 +97,7 @@ public class ContractManagementUI {
                 c.getRoomId(),
                 c.getStartDate(),
                 c.getEndDate(),
-                "₹" + c.getMonthlyRent(),
+                "$" + c.getMonthlyRent(),
                 c.getStatus()
             });
         }

@@ -242,7 +242,7 @@ public class RoomManagementUI {
                 r.getFloor(),
                 r.getRoomType(),
                 r.getStatus(),
-                "₹" + r.getMonthlyRent()
+                "$" + r.getMonthlyRent()
             });
         }
     }
@@ -271,7 +271,7 @@ public class RoomManagementUI {
                 r.getRoomNumber(),
                 r.getFloor(),
                 r.getRoomType(),
-                "₹" + r.getMonthlyRent()
+                "$" + r.getMonthlyRent()
             });
         }
         

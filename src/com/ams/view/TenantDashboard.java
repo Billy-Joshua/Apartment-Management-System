@@ -130,7 +130,7 @@ public class TenantDashboard extends JFrame {
             for (Payment p : payments) {
                 model.addRow(new Object[]{
                     p.getPaymentId(),
-                    "₹" + p.getAmount(),
+                    "$" + p.getAmount(),
                     p.getDueDate(),
                     p.getStatus(),
                     p.getPaymentMethod() != null ? p.getPaymentMethod() : "N/A"
@@ -174,7 +174,7 @@ public class TenantDashboard extends JFrame {
                 addContractRow(cardPanel, "📝 Contract ID:", String.valueOf(contract.getContractId()));
                 addContractRow(cardPanel, "📅 Start Date:", contract.getStartDate());
                 addContractRow(cardPanel, "📅 End Date:", contract.getEndDate());
-                addContractRow(cardPanel, "💰 Monthly Rent:", "₹" + contract.getMonthlyRent());
+                addContractRow(cardPanel, "💰 Monthly Rent:", "$" + contract.getMonthlyRent());
                 addContractRow(cardPanel, "✅ Status:", contract.getStatus());
             } else {
                 JLabel noContractLabel = new JLabel("ℹ️ No active contract found");

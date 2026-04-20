@@ -98,7 +98,7 @@ public class PaymentManagementUI {
             tableModel.addRow(new Object[]{
                 p.getPaymentId(),
                 p.getTenantId(),
-                "₹" + p.getAmount(),
+                "$" + p.getAmount(),
                 p.getDueDate(),
                 p.getStatus(),
                 p.getPaymentMethod() != null ? p.getPaymentMethod() : "N/A",
