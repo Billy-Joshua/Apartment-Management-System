@@ -82,10 +82,8 @@ Manager:   manager1 / manager123
 Tenant:    tenant1 / tenant123
 ```
 
-### Presentation
-Use the **PROJECT_GUIDE.md Section 8** - it has a complete 2-3 minute script with slides!
+Presentation
 
----
 
 ## Next Steps
 1. Follow `DATABASE_SETUP.md` for detailed setup
