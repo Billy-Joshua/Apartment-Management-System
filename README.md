@@ -1,12 +1,12 @@
 <<<<<<< HEAD
 # README - Apartment Management System
 
-## Quick Start Guide
+Quick Start Guide
 
-### What is This?
+ What is This?
 A complete **Apartment Management System** built with Java (Swing GUI), MySQL, and Socket Programming.
 
-### Features
+ Features
 ✅ Role-based user authentication (Admin, Manager, Tenant)  
 ✅ Complete CRUD operations (Create, Read, Update, Delete)  
 ✅ MVC Architecture  
