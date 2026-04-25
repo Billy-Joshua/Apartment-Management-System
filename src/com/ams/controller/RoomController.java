@@ -1,6 +1,6 @@
 package com.ams.controller;
 
-import com.ams.config.DatabaseConfig;
+import com.ams.config.ConnectionPool;
 import com.ams.model.Room;
 import java.sql.*;
 import java.util.ArrayList;
@@ -8,20 +8,27 @@ import java.util.List;
 
 /**
  * RoomController - Handles room management operations
+ * Uses connection pooling for better performance and resource management
  */
 public class RoomController {
-    
-    private Connection conn;
-    
+
+    private ConnectionPool connectionPool;
+
     public RoomController() {
-        this.conn = DatabaseConfig.getConnection();
+        try {
+            this.connectionPool = ConnectionPool.getInstance();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to initialize database connection pool", e);
+        }
     }
     
     /**
      * Add new room
      */
     public boolean addRoom(Room room) {
+        Connection conn = null;
         try {
+            conn = connectionPool.getConnection();
             String query = "INSERT INTO rooms (room_number, floor, room_type, status, monthly_rent, description) " +
                           "VALUES (?, ?, ?, ?, ?, ?)";
             PreparedStatement ps = conn.prepareStatement(query);
@@ -31,11 +38,15 @@ public class RoomController {
             ps.setString(4, room.getStatus());
             ps.setDouble(5, room.getMonthlyRent());
             ps.setString(6, room.getDescription());
-            
+
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("Error adding room: " + e.getMessage());
             return false;
+        } finally {
+            if (conn != null) {
+                connectionPool.releaseConnection(conn);
+            }
         }
     }
     
@@ -43,7 +54,9 @@ public class RoomController {
      * Update room
      */
     public boolean updateRoom(Room room) {
+        Connection conn = null;
         try {
+            conn = connectionPool.getConnection();
             String query = "UPDATE rooms SET room_number=?, floor=?, room_type=?, status=?, " +
                           "monthly_rent=?, description=? WHERE room_id=?";
             PreparedStatement ps = conn.prepareStatement(query);
@@ -54,11 +67,15 @@ public class RoomController {
             ps.setDouble(5, room.getMonthlyRent());
             ps.setString(6, room.getDescription());
             ps.setInt(7, room.getRoomId());
-            
+
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("Error updating room: " + e.getMessage());
             return false;
+        } finally {
+            if (conn != null) {
+                connectionPool.releaseConnection(conn);
+            }
         }
     }
     
@@ -66,15 +83,21 @@ public class RoomController {
      * Delete room
      */
     public boolean deleteRoom(int roomId) {
+        Connection conn = null;
         try {
+            conn = connectionPool.getConnection();
             String query = "DELETE FROM rooms WHERE room_id = ?";
             PreparedStatement ps = conn.prepareStatement(query);
             ps.setInt(1, roomId);
-            
+
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("Error deleting room: " + e.getMessage());
             return false;
+        } finally {
+            if (conn != null) {
+                connectionPool.releaseConnection(conn);
+            }
         }
     }
     
@@ -83,11 +106,13 @@ public class RoomController {
      */
     public List<Room> getAllRooms() {
         List<Room> rooms = new ArrayList<>();
+        Connection conn = null;
         try {
+            conn = connectionPool.getConnection();
             String query = "SELECT * FROM rooms ORDER BY room_number";
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(query);
-            
+
             while (rs.next()) {
                 rooms.add(new Room(
                     rs.getInt("room_id"),
@@ -101,6 +126,10 @@ public class RoomController {
             }
         } catch (SQLException e) {
             System.err.println("Error fetching rooms: " + e.getMessage());
+        } finally {
+            if (conn != null) {
+                connectionPool.releaseConnection(conn);
+            }
         }
         return rooms;
     }
@@ -110,11 +139,13 @@ public class RoomController {
      */
     public List<Room> getVacantRooms() {
         List<Room> rooms = new ArrayList<>();
+        Connection conn = null;
         try {
+            conn = connectionPool.getConnection();
             String query = "SELECT * FROM rooms WHERE status = 'VACANT' ORDER BY room_number";
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(query);
-            
+
             while (rs.next()) {
                 rooms.add(new Room(
                     rs.getInt("room_id"),
@@ -128,6 +159,10 @@ public class RoomController {
             }
         } catch (SQLException e) {
             System.err.println("Error fetching vacant rooms: " + e.getMessage());
+        } finally {
+            if (conn != null) {
+                connectionPool.releaseConnection(conn);
+            }
         }
         return rooms;
     }
@@ -136,11 +171,13 @@ public class RoomController {
      * Get room by ID
      */
     public Room getRoomById(int roomId) {
+        Connection conn = null;
         try {
+            conn = connectionPool.getConnection();
             String query = "SELECT * FROM rooms WHERE room_id = ?";
             PreparedStatement ps = conn.prepareStatement(query);
             ps.setInt(1, roomId);
-            
+
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return new Room(
@@ -155,6 +192,10 @@ public class RoomController {
             }
         } catch (SQLException e) {
             System.err.println("Error fetching room: " + e.getMessage());
+        } finally {
+            if (conn != null) {
+                connectionPool.releaseConnection(conn);
+            }
         }
         return null;
     }

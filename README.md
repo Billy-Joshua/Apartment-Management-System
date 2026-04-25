@@ -82,7 +82,8 @@ Manager:   manager1 / manager123
 Tenant:    tenant1 / tenant123
 ```
 
-Presentation
+### Presentation
+Use the **PROJECT_GUIDE.md Section 8** - it has a complete 2-3 minute script with slides!
 
 
 ## Next Steps

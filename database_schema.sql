@@ -112,20 +112,20 @@ CREATE TABLE payments (
 
 -- Insert Admin User
 INSERT INTO users (username, password, email, role, status) 
-VALUES ('admin', 'admin123', 'admin@ams.com', 'ADMIN', 'ACTIVE');
+VALUES ('admin', 'RiY4v8zKqOgSdoYwnel62Q==:myQ42KaXf3n/Yel79DKVDhZIaFHY92F4gK3JqcPHa2w=', 'admin@ams.com', 'ADMIN', 'ACTIVE');
 
 -- Insert Manager Users
 INSERT INTO users (username, password, email, role, status) 
 VALUES 
-('manager1', 'manager123', 'manager1@ams.com', 'MANAGER', 'ACTIVE'),
-('manager2', 'manager123', 'manager2@ams.com', 'MANAGER', 'ACTIVE');
+('manager1', 'I9znU2mls6aXIxSbkwlAgg==:JWVmmEH2hszqTEWs7AhwGVUIwngPfQ10DDh8/G+YEz4=', 'manager1@ams.com', 'MANAGER', 'ACTIVE'),
+('manager2', 'I9znU2mls6aXIxSbkwlAgg==:JWVmmEH2hszqTEWs7AhwGVUIwngPfQ10DDh8/G+YEz4=', 'manager2@ams.com', 'MANAGER', 'ACTIVE');
 
 -- Insert Tenant Users
 INSERT INTO users (username, password, email, role, status) 
 VALUES 
-('tenant1', 'tenant123', 'tenant1@ams.com', 'TENANT', 'ACTIVE'),
-('tenant2', 'tenant123', 'tenant2@ams.com', 'TENANT', 'ACTIVE'),
-('tenant3', 'tenant123', 'tenant3@ams.com', 'TENANT', 'ACTIVE');
+('tenant1', 't3vi6tbU1gJySAT2UoIYAg==:aWs0nNadZjhebXcYjrD44zH8dTll2eK4RaJ/CmljgTA=', 'tenant1@ams.com', 'TENANT', 'ACTIVE'),
+('tenant2', 't3vi6tbU1gJySAT2UoIYAg==:aWs0nNadZjhebXcYjrD44zH8dTll2eK4RaJ/CmljgTA=', 'tenant2@ams.com', 'TENANT', 'ACTIVE'),
+('tenant3', 't3vi6tbU1gJySAT2UoIYAg==:aWs0nNadZjhebXcYjrD44zH8dTll2eK4RaJ/CmljgTA=', 'tenant3@ams.com', 'TENANT', 'ACTIVE');
 
 -- Insert Rooms
 INSERT INTO rooms (room_number, floor, room_type, status, monthly_rent, description) 

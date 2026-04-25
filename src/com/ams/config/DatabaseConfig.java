@@ -7,31 +7,56 @@ import java.sql.SQLException;
 
 /**
  * DatabaseConfig class - Manages database connections
- * Provides singleton pattern for database connection management
+ * Provides thread-safe singleton pattern for database connection management
  */
 public class DatabaseConfig {
     
-    private static Connection connection = null;
+    private static volatile Connection connection = null;
+    private static final Object lock = new Object();
     
     /**
-     * Establishes database connection
+     * Establishes database connection with thread safety
      * @return Connection object if successful, null otherwise
      */
     public static Connection getConnection() {
-        try {
-            if (connection == null || connection.isClosed()) {
-                // Load MySQL Driver
-                Class.forName(Constants.DB_DRIVER);
-                
-                // Establish connection
-                connection = DriverManager.getConnection(
-                    Constants.DB_URL,
-                    Constants.DB_USER,
-                    Constants.DB_PASSWORD
-                );
-                
-                System.out.println("[DATABASE] Connected successfully!");
+        if (connection == null || isConnectionClosed()) {
+            synchronized (lock) {
+                if (connection == null || isConnectionClosed()) {
+                    connection = createConnection();
+                }
             }
+        }
+        return connection;
+    }
+    
+    /**
+     * Check if connection is closed or invalid
+     */
+    private static boolean isConnectionClosed() {
+        try {
+            return connection == null || connection.isClosed();
+        } catch (SQLException e) {
+            return true;
+        }
+    }
+    
+    /**
+     * Create new database connection
+     */
+    private static Connection createConnection() {
+        try {
+            // Load MySQL Driver
+            Class.forName(Constants.DB_DRIVER);
+            
+            // Establish connection
+            Connection conn = DriverManager.getConnection(
+                Constants.DB_URL,
+                Constants.DB_USER,
+                Constants.DB_PASSWORD
+            );
+            
+            System.out.println("[DATABASE] Connected successfully!");
+            return conn;
         } catch (ClassNotFoundException e) {
             System.err.println("[DATABASE] MySQL Driver not found!");
             e.printStackTrace();
@@ -39,8 +64,7 @@ public class DatabaseConfig {
             System.err.println("[DATABASE] Connection failed!");
             e.printStackTrace();
         }
-        
-        return connection;
+        return null;
     }
     
     /**

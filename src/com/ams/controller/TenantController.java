@@ -1,29 +1,38 @@
 package com.ams.controller;
 
-import com.ams.config.DatabaseConfig;
+import com.ams.config.ConnectionPool;
 import com.ams.model.Tenant;
+import com.ams.utils.SecurityUtils;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * TenantController - Handles tenant management operations
+ * Uses connection pooling for better performance and resource management
  */
 public class TenantController {
-    
-    private Connection conn;
-    
+
+    private ConnectionPool connectionPool;
+
     public TenantController() {
-        this.conn = DatabaseConfig.getConnection();
+        try {
+            this.connectionPool = ConnectionPool.getInstance();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to initialize database connection pool", e);
+        }
     }
     
     /**
      * Add new tenant
      */
     public boolean addTenant(Tenant tenant) {
+        Connection conn = null;
         try {
+            conn = connectionPool.getConnection();
+
             if (tenant.getUserId() <= 0) {
-                int userId = findOrCreateTenantUser(tenant);
+                int userId = findOrCreateTenantUser(tenant, conn);
                 if (userId <= 0) {
                     throw new SQLException("Unable to create or locate tenant user account.");
                 }
@@ -42,29 +51,34 @@ public class TenantController {
             ps.setString(7, tenant.getMoveInDate());
             ps.setString(8, tenant.getEmergencyContact());
             ps.setString(9, tenant.getEmergencyPhone());
-            
+
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("Error adding tenant: " + e.getMessage());
             return false;
+        } finally {
+            if (conn != null) {
+                connectionPool.releaseConnection(conn);
+            }
         }
     }
 
-    private int findOrCreateTenantUser(Tenant tenant) throws SQLException {
-        int existingUserId = getTenantUserIdByEmail(tenant.getEmail());
+    private int findOrCreateTenantUser(Tenant tenant, Connection conn) throws SQLException {
+        int existingUserId = getTenantUserIdByEmail(tenant.getEmail(), conn);
         if (existingUserId > 0) {
             return existingUserId;
         }
 
-        String username = generateUsername(tenant);
-        String password = "tenant123";
+        String username = generateUsername(tenant, conn);
+        String plainPassword = SecurityUtils.generateSecurePassword(); // Generate secure password
+        String hashedPassword = SecurityUtils.hashPassword(plainPassword); // Hash it
         String role = "TENANT";
         String status = "ACTIVE";
 
         String insertUserSql = "INSERT INTO users (username, password, email, role, status) VALUES (?, ?, ?, ?, ?)";
         PreparedStatement ps = conn.prepareStatement(insertUserSql, Statement.RETURN_GENERATED_KEYS);
         ps.setString(1, username);
-        ps.setString(2, password);
+        ps.setString(2, hashedPassword); // Store hashed password
         ps.setString(3, tenant.getEmail());
         ps.setString(4, role);
         ps.setString(5, status);
@@ -83,7 +97,7 @@ public class TenantController {
         return -1;
     }
 
-    private int getTenantUserIdByEmail(String email) throws SQLException {
+    private int getTenantUserIdByEmail(String email, Connection conn) throws SQLException {
         String query = "SELECT user_id FROM users WHERE email = ? AND role = 'TENANT'";
         PreparedStatement ps = conn.prepareStatement(query);
         ps.setString(1, email);
@@ -94,7 +108,7 @@ public class TenantController {
         return -1;
     }
 
-    private String generateUsername(Tenant tenant) throws SQLException {
+    private String generateUsername(Tenant tenant, Connection conn) throws SQLException {
         String baseUsername = "user";
         if (tenant.getEmail() != null && tenant.getEmail().contains("@")) {
             baseUsername = tenant.getEmail().split("@")[0];
@@ -108,7 +122,7 @@ public class TenantController {
         }
 
         int suffix = 0;
-        while (usernameExists(username)) {
+        while (usernameExists(username, conn)) {
             suffix++;
             username = baseUsername + suffix;
         }
@@ -116,7 +130,7 @@ public class TenantController {
         return username;
     }
 
-    private boolean usernameExists(String username) throws SQLException {
+    private boolean usernameExists(String username, Connection conn) throws SQLException {
         String query = "SELECT user_id FROM users WHERE username = ?";
         PreparedStatement ps = conn.prepareStatement(query);
         ps.setString(1, username);
@@ -128,7 +142,9 @@ public class TenantController {
      * Update tenant
      */
     public boolean updateTenant(Tenant tenant) {
+        Connection conn = null;
         try {
+            conn = connectionPool.getConnection();
             String query = "UPDATE tenants SET first_name=?, last_name=?, email=?, phone=?, room_id=?, " +
                           "move_in_date=?, emergency_contact=?, emergency_phone=? WHERE tenant_id=?";
             PreparedStatement ps = conn.prepareStatement(query);
@@ -141,11 +157,15 @@ public class TenantController {
             ps.setString(7, tenant.getEmergencyContact());
             ps.setString(8, tenant.getEmergencyPhone());
             ps.setInt(9, tenant.getTenantId());
-            
+
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("Error updating tenant: " + e.getMessage());
             return false;
+        } finally {
+            if (conn != null) {
+                connectionPool.releaseConnection(conn);
+            }
         }
     }
     
@@ -153,23 +173,24 @@ public class TenantController {
      * Delete tenant with proper cascade handling
      */
     public boolean deleteTenant(int tenantId) {
-        Connection conn = DatabaseConfig.getConnection();
+        Connection conn = null;
         try {
+            conn = connectionPool.getConnection();
             conn.setAutoCommit(false);
-            
+
             // Step 1: Delete all payments related to this tenant's contracts
             String deletePaymentsQuery = "DELETE FROM payments WHERE contract_id IN " +
                     "(SELECT contract_id FROM contracts WHERE tenant_id = ?)";
             PreparedStatement ps1 = conn.prepareStatement(deletePaymentsQuery);
             ps1.setInt(1, tenantId);
             ps1.executeUpdate();
-            
+
             // Step 2: Delete all contracts for this tenant
             String deleteContractsQuery = "DELETE FROM contracts WHERE tenant_id = ?";
             PreparedStatement ps2 = conn.prepareStatement(deleteContractsQuery);
             ps2.setInt(1, tenantId);
             ps2.executeUpdate();
-            
+
             // Step 3: Get the user_id before deleting the tenant
             String getUserIdQuery = "SELECT user_id FROM tenants WHERE tenant_id = ?";
             PreparedStatement ps3 = conn.prepareStatement(getUserIdQuery);
@@ -179,13 +200,13 @@ public class TenantController {
             if (rs.next()) {
                 userId = rs.getInt("user_id");
             }
-            
+
             // Step 4: Delete the tenant
             String deleteTenantQuery = "DELETE FROM tenants WHERE tenant_id = ?";
             PreparedStatement ps4 = conn.prepareStatement(deleteTenantQuery);
             ps4.setInt(1, tenantId);
             int result = ps4.executeUpdate();
-            
+
             // Step 5: Delete the associated user (optional, based on business logic)
             if (userId > 0) {
                 String deleteUserQuery = "DELETE FROM users WHERE user_id = ? AND role = 'TENANT'";
@@ -193,18 +214,29 @@ public class TenantController {
                 ps5.setInt(1, userId);
                 ps5.executeUpdate();
             }
-            
+
             conn.commit();
             conn.setAutoCommit(true);
             return result > 0;
         } catch (SQLException e) {
             try {
-                conn.rollback();
+                if (conn != null) {
+                    conn.rollback();
+                }
             } catch (SQLException rollbackEx) {
                 System.err.println("Rollback error: " + rollbackEx.getMessage());
             }
             System.err.println("Error deleting tenant: " + e.getMessage());
             return false;
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true); // Reset auto-commit
+                } catch (SQLException e) {
+                    System.err.println("Error resetting auto-commit: " + e.getMessage());
+                }
+                connectionPool.releaseConnection(conn);
+            }
         }
     }
     
@@ -213,11 +245,13 @@ public class TenantController {
      */
     public List<Tenant> getAllTenants() {
         List<Tenant> tenants = new ArrayList<>();
+        Connection conn = null;
         try {
+            conn = connectionPool.getConnection();
             String query = "SELECT * FROM tenants ORDER BY first_name";
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(query);
-            
+
             while (rs.next()) {
                 tenants.add(new Tenant(
                     rs.getInt("tenant_id"),
@@ -234,6 +268,10 @@ public class TenantController {
             }
         } catch (SQLException e) {
             System.err.println("Error fetching tenants: " + e.getMessage());
+        } finally {
+            if (conn != null) {
+                connectionPool.releaseConnection(conn);
+            }
         }
         return tenants;
     }
@@ -242,11 +280,13 @@ public class TenantController {
      * Get tenant by ID
      */
     public Tenant getTenantById(int tenantId) {
+        Connection conn = null;
         try {
+            conn = connectionPool.getConnection();
             String query = "SELECT * FROM tenants WHERE tenant_id = ?";
             PreparedStatement ps = conn.prepareStatement(query);
             ps.setInt(1, tenantId);
-            
+
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return new Tenant(
@@ -264,6 +304,10 @@ public class TenantController {
             }
         } catch (SQLException e) {
             System.err.println("Error fetching tenant: " + e.getMessage());
+        } finally {
+            if (conn != null) {
+                connectionPool.releaseConnection(conn);
+            }
         }
         return null;
     }
@@ -272,11 +316,13 @@ public class TenantController {
      * Get tenant by user ID
      */
     public Tenant getTenantByUserId(int userId) {
+        Connection conn = null;
         try {
+            conn = connectionPool.getConnection();
             String query = "SELECT * FROM tenants WHERE user_id = ?";
             PreparedStatement ps = conn.prepareStatement(query);
             ps.setInt(1, userId);
-            
+
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return new Tenant(
@@ -294,6 +340,10 @@ public class TenantController {
             }
         } catch (SQLException e) {
             System.err.println("Error fetching tenant: " + e.getMessage());
+        } finally {
+            if (conn != null) {
+                connectionPool.releaseConnection(conn);
+            }
         }
         return null;
     }
