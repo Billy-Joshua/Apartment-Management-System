@@ -1,5 +1,5 @@
 
-# README - Apartment Management System
+# - Apartment Management System
 
 Quick Start Guide
 
