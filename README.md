@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # README - Apartment Management System
 
 Quick Start Guide
