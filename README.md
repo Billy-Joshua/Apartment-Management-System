@@ -1,7 +1,6 @@
 
 # - Apartment Management System
 
-Quick Start Guide
 
  What is This?
 A complete **Apartment Management System** built with Java (Swing GUI), MySQL, and Socket Programming.
